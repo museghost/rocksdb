@@ -298,8 +298,12 @@ void DBImpl::FindObsoleteFiles(JobContext* job_context, bool force,
   // We're just cleaning up for DB::Write().
   assert(job_context->logs_to_free.empty());
   job_context->logs_to_free = logs_to_free_;
-  job_context->log_recycle_files.assign(log_recycle_files_.begin(),
-                                        log_recycle_files_.end());
+  // TODO: 22.06.17 - patch for GCC 9
+  job_context->log_recycle_files.reserve(log_recycle_files_.size());
+  for (const auto& item: log_recycle_files_) {
+    job_context->log_recycle_files.emplace_back(item);
+  }
+   
   if (job_context->HaveSomethingToDelete()) {
     ++pending_purge_obsolete_files_;
   }
